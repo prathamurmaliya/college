@@ -1,0 +1,255 @@
+
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <limits>
+using namespace std;
+
+const int TOTAL_SEATS = 30;
+
+// Structure for storing passenger details
+struct Passenger {
+    int seatNo;
+    string name;
+    int age;
+    char gender;
+
+    Passenger* next;
+};
+
+// Function to book a ticket
+void bookTicket(int* seats, Passenger*& head) {
+
+    // Find the first available seat
+    int seat = -1;
+
+    for (int i = 0; i < TOTAL_SEATS; i++) {
+        if (seats[i] == 0) {
+            seat = i + 1;
+            break;
+        }
+    }
+
+    if (seat == -1) {
+        cout << "\nSorry! No seats available.\n";
+        return;
+    }
+
+    string name;
+    int age;
+    char gender;
+
+    cout << "Enter Passenger Name: ";
+    getline(cin, name);
+
+    cout << "Enter Age: ";
+    cin >> age;
+
+    cout << "Enter Gender (M/F): ";
+    cin >> gender;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    // Create a new passenger node
+    Passenger* newPassenger = new Passenger;
+
+    newPassenger->seatNo = seat;
+    newPassenger->name = name;
+    newPassenger->age = age;
+    newPassenger->gender = gender;
+    newPassenger->next = nullptr;
+
+    // Insert node at the end of linked list
+    if (head == nullptr) {
+        head = newPassenger;
+    }
+    else {
+        Passenger* temp = head;
+
+        while (temp->next != nullptr) {
+            temp = temp->next;
+        }
+
+        temp->next = newPassenger;
+    }
+
+    // Mark the seat as booked
+    seats[seat - 1] = 1;
+
+    cout << "\nTicket booked successfully!";
+    cout << "\nYour Seat Number is: " << seat << "\n";
+}
+
+
+// Function to cancel a ticket
+void cancelTicket(int* seats, Passenger*& head) {
+
+    int seat;
+    cout << "Enter Seat Number to Cancel: ";
+    cin >> seat;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    if (seat < 1 || seat > TOTAL_SEATS) {
+        cout << "\nInvalid Seat Number!\n";
+        return;
+    }
+
+    if (seats[seat - 1] == 0) {
+        cout << "\nThis seat is already available.\n";
+        return;
+    }
+
+    Passenger* temp = head;
+    Passenger* prev = nullptr;
+
+    // Search for the passenger
+    while (temp != nullptr && temp->seatNo != seat) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    if (temp == nullptr) {
+        cout << "\nPassenger not found!\n";
+        return;
+    }
+
+    // Remove node from linked list
+    if (prev == nullptr) {
+        head = temp->next;
+    }
+    else {
+        prev->next = temp->next;
+    }
+
+    delete temp;
+
+    // Make the seat available again
+    seats[seat - 1] = 0;
+
+    cout << "\nTicket cancelled successfully!\n";
+}
+
+
+// Function to display train status
+void viewTrainStatus(int* seats) {
+
+    cout << "\n----- TRAIN SEAT STATUS -----\n";
+
+    for (int i = 0; i < TOTAL_SEATS; i++) {
+
+        cout << "Seat " << i + 1 << ": ";
+
+        if (seats[i] == 1) {
+            cout << "Booked\n";
+        }
+        else {
+            cout << "Available\n";
+        }
+    }
+}
+
+
+// Function to display passenger list
+void viewPassengerList(Passenger* head) {
+
+    cout << "\n----- PASSENGER LIST -----\n";
+
+    if (head == nullptr) {
+        cout << "No passengers have booked tickets.\n";
+        return;
+    }
+
+    Passenger* temp = head;
+
+    while (temp != nullptr) {
+
+        cout << "\nSeat No: " << temp->seatNo;
+        cout << " | Name: " << temp->name;
+        cout << " | Age: " << temp->age;
+        cout << " | Gender: " << temp->gender << "\n";
+
+        temp = temp->next;
+    }
+}
+
+
+// Function to free all linked list memory
+void freePassengerList(Passenger*& head) {
+
+    Passenger* temp;
+
+    while (head != nullptr) {
+
+        temp = head;
+        head = head->next;
+
+        delete temp;
+    }
+}
+
+
+// Main function
+int main() {
+
+    // Dynamically allocate memory for seat array
+    int* seats = (int*)malloc(TOTAL_SEATS * sizeof(int));
+
+    if (seats == nullptr) {
+        cout << "Memory allocation failed!\n";
+        return 1;
+    }
+
+    // Initially all seats are available
+    for (int i = 0; i < TOTAL_SEATS; i++) {
+        seats[i] = 0;
+    }
+
+    Passenger* head = nullptr;
+
+    int choice;
+
+    do {
+
+        cout << "\n===== RAILWAY RESERVATION SYSTEM =====\n";
+        cout << "1. Book Ticket\n";
+        cout << "2. Cancel Ticket\n";
+        cout << "3. View Train Status\n";
+        cout << "4. View Passenger List\n";
+        cout << "5. Exit\n";
+
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        switch (choice) {
+
+            case 1:
+                bookTicket(seats, head);
+                break;
+
+            case 2:
+                cancelTicket(seats, head);
+                break;
+
+            case 3:
+                viewTrainStatus(seats);
+                break;
+
+            case 4:
+                viewPassengerList(head);
+                break;
+
+            case 5:
+                freePassengerList(head);
+                free(seats);
+                cout << "\nMemory freed successfully.";
+                cout << "\nThank you for using Railway Reservation System!\n";
+                break;
+
+            default:
+                cout << "\nInvalid choice! Please try again.\n";
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
